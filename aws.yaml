@@ -1,0 +1,72 @@
+Description: Plataforma de Compartilhamento de Veículos Elétricos
+
+Resources:
+  # Inicialmente é provisionado uma VM no serviço EC2, especificando a instancia, imagem e grupo de segurança
+  EC2Instance:
+    Type: 'AWS::EC2::Instance'
+    Properties:
+      InstanceType: t2.micro
+      ImageId: ami-12345678
+      SecurityGroups:
+        - Ref: EC2SecurityGroup
+
+  # Criando um grupo de segurança para a instância EC2
+  EC2SecurityGroup:
+    Type: 'AWS::EC2::SecurityGroup'
+    Properties:
+      GroupDescription: Security group for EC2 instance
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: '80'
+          ToPort: '80'
+          CidrIp: 0.0.0.0/0  # Faixa de IP permitido no grupo no caso 0.0.0.0/0 (TODOS ips)
+
+  # Configurando o serviço RDS com o Aurora banco free da AWS, com cluster Mysql:5.7
+  AuroraDBCluster:
+    Type: 'AWS::RDS::DBCluster'
+    Properties:
+      Engine: aurora
+      EngineVersion: 5.7.mysql_aurora.2.07.2
+      MasterUsername: admin
+      MasterUserPassword: adminpassword
+      DBSubnetGroupName: default
+
+  # Serviço S3 para imagens, fotos e arquivos estáticos
+  DataStorageBucket:
+    Type: 'AWS::S3::Bucket'
+
+  # Configurando o load balance para gerenciar os recursos
+  LoadBalancer:
+    Type: 'AWS::ElasticLoadBalancingV2::LoadBalancer'
+    Properties:
+      Subnets:
+        - SubnetId: subnet-12345678
+      SecurityGroups:
+        - Ref: LoadBalancerSecurityGroup
+
+  # Definido mais um grupo de segurança neste caso é o grupo do load balance que deve ter acesso total a todos recursos
+  LoadBalancerSecurityGroup:
+    Type: 'AWS::EC2::SecurityGroup'
+    Properties:
+      GroupDescription: Security group for Load Balancer
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: '80'
+          ToPort: '80'
+          CidrIp: 0.0.0.0/0
+
+  # Declarando o Cluster ECS para orquestrar os containeres
+  ECSCluster:
+    Type: 'AWS::ECS::Cluster'
+
+  # Instanciando o ECS para executar os containeres
+  ECSService:
+    Type: 'AWS::ECS::Service'
+    DependsOn: LoadBalancer
+    Properties:
+      Cluster: !Ref ECSCluster
+      LaunchType: EC2
+      TaskDefinition: my-task-definition
+      LoadBalancers:
+        - ContainerName: my-container
+          ContainerPort: 80
