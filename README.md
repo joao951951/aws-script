@@ -38,7 +38,7 @@ Define um cluster do Amazon Elastic Container Service (ECS) para gerenciamento d
 Define um serviço do Amazon ECS para executar os microsserviços. Depende do balanceador de carga. Configura o tipo de lançamento (EC2), a definição de tarefa e o balanceamento de carga.
 
 ## Alunos
-Leandro Negrão Ribeiro de Souza
-Jeferson Shimoda
-João Paulo Carnellossi dos Santos
-Gal Levy
+Leandro Negrão Ribeiro de Souza,
+Jeferson Shimoda,
+João Paulo Carnellossi dos Santos,
+Gal Levy.
